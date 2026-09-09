@@ -31,3 +31,20 @@ enum MinisUserAgent {
         return ua
     }
 }
+
+/// [Fix-opencode-session] Stable per-install ID for `x-opencode-session`.
+/// Persisted in UserDefaults so it survives app restarts, satisfying
+/// "one stable ID per session" required by OpenCode Go since 2025-09-06.
+enum OpencodeSession {
+    private static let defaultsKey = "opencode.sessionId"
+
+    /// Lazily minted UUID, persisted on first access.
+    static var id: String {
+        if let existing = UserDefaults.standard.string(forKey: defaultsKey), !existing.isEmpty {
+            return existing
+        }
+        let newId = UUID().uuidString
+        UserDefaults.standard.set(newId, forKey: defaultsKey)
+        return newId
+    }
+}

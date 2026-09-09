@@ -37,7 +37,22 @@ fun Request.Builder.applyUserAgentOverride(
         // else: leave whatever UA the builder already had (preserves
         // Codex / Claude CLI fingerprints on OAuth paths).
     }
+    // [Fix-opencode-session] OpenCode Go requires `x-opencode-session` on every
+    // request for service optimization; missing header caused 4xx since 2025-09-06.
+    // Value is a stable per-install session ID (one UUID, reused for all requests).
+    header("x-opencode-session", OpencodeSession.ID)
     return this
+}
+
+/**
+ * [Fix-opencode-session] Stable per-install ID for `x-opencode-session`.
+ * Lazy UUID — same value for the whole process lifetime, satisfying
+ * "one stable ID per session" without needing Context/SharedPreferences.
+ * Persisting across reinstalls is unnecessary for the header's purpose
+ * (de-duplication / optimization) and would require Context plumbing.
+ */
+object OpencodeSession {
+    val ID: String by lazy { java.util.UUID.randomUUID().toString() }
 }
 
 /**

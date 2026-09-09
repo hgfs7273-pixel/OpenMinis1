@@ -1509,6 +1509,9 @@ final class EagerStreamingHTTPClient: HTTPClient {
             config.httpAdditionalHeaders = (config.httpAdditionalHeaders ?? [:]).merging(
                 ["User-Agent": ua]) { _, new in new }
         }
+        // [Fix-opencode-session]
+        config.httpAdditionalHeaders = (config.httpAdditionalHeaders ?? [:]).merging(
+            ["x-opencode-session": OpencodeSession.id]) { _, new in new }
         let session = URLSession(configuration: config)
         self.underlying = URLSessionHTTPClientAdapter(urlSession: session)
     }
@@ -1536,6 +1539,9 @@ final class DualAuthHTTPClient: HTTPClient {
             config.httpAdditionalHeaders = (config.httpAdditionalHeaders ?? [:]).merging(
                 ["User-Agent": ua]) { _, new in new }
         }
+        // [Fix-opencode-session]
+        config.httpAdditionalHeaders = (config.httpAdditionalHeaders ?? [:]).merging(
+            ["x-opencode-session": OpencodeSession.id]) { _, new in new }
         let session = URLSession(configuration: config)
         self.underlying = URLSessionHTTPClientAdapter(urlSession: session)
     }

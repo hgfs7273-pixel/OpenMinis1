@@ -863,6 +863,9 @@ final class OpenAIProvider: LLMProvider {
         for (key, value) in extraHeaders {
             request.setValue(value, forHTTPHeaderField: key)
         }
+        if request.value(forHTTPHeaderField: "x-opencode-session") == nil {
+            request.setValue(OpencodeSession.id, forHTTPHeaderField: "x-opencode-session")
+        }
         // [T-ios-openai-body-oom] Must run BEFORE serializing: an out-of-memory
         // inside JSONSerialization aborts the process and cannot be caught. This
         // is the agent loop's request path, where the body grows with every turn.
@@ -1012,6 +1015,10 @@ final class OpenAIProvider: LLMProvider {
         for (key, value) in extraHeaders {
             request.setValue(value, forHTTPHeaderField: key)
         }
+        // [Fix-opencode-session] Ensure session header even if factory injection missed.
+        if request.value(forHTTPHeaderField: "x-opencode-session") == nil {
+            request.setValue(OpencodeSession.id, forHTTPHeaderField: "x-opencode-session")
+        }
 
         var allMessages = messages
         if let sys = systemPrompt, !sys.isEmpty {
@@ -1118,6 +1125,9 @@ final class OpenAIProvider: LLMProvider {
 
         for (key, value) in extraHeaders {
             request.setValue(value, forHTTPHeaderField: key)
+        }
+        if request.value(forHTTPHeaderField: "x-opencode-session") == nil {
+            request.setValue(OpencodeSession.id, forHTTPHeaderField: "x-opencode-session")
         }
 
         var body: [String: Any] = [

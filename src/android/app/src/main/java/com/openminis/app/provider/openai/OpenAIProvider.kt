@@ -1566,6 +1566,8 @@ class OpenAIProvider private constructor(
         // ctor extraHeaders, then user headers LAST — replace semantics.
         for ((k, v) in extraHeaders) builder.header(k, v)
         for ((k, v) in headers) builder.header(k, v)
+        // [Fix-opencode-session] Ensure raw passthrough also carries session header.
+        builder.header("x-opencode-session", com.openminis.app.provider.OpencodeSession.ID)
 
         com.openminis.app.logging.AppLogger.info(
             "OpenAIProvider",

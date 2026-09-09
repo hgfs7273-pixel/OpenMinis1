@@ -433,6 +433,8 @@ final class GeminiProvider: LLMProvider {
             // (Minis/<marketing>) instead. Never overrides the Cloud Code UA above.
             request.setValue(MinisUserAgent.default, forHTTPHeaderField: "User-Agent")
         }
+        // [Fix-opencode-session]
+        request.setValue(OpencodeSession.id, forHTTPHeaderField: "x-opencode-session")
 
         // sortedKeys: stable byte-level prefix so server-side prompt caches
         // (Gemini implicit cache, disk-cached providers, etc.) can match across calls.

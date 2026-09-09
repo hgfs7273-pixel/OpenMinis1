@@ -58,6 +58,10 @@ enum LLMProviderFactory {
 
     @discardableResult
     static func applyCustomUserAgent(_ provider: OpenAIProvider, instance: ProviderInstance) -> OpenAIProvider {
+        // [Fix-opencode-session] Always inject stable session header for OpenCode Go
+        // (required since 2025-09-06; missing header caused Minis/1.13 requests to fail).
+        // Applied even on OAuth paths — extra header is harmless on chatgpt.com.
+        provider.extraHeaders["x-opencode-session"] = OpencodeSession.id
         // OAuth (Codex) requires its own `codex_cli_rs/...` UA — never touch it.
         guard !provider.isOAuth else { return provider }
         // A user-set per-provider custom UA wins (only honored for
@@ -75,6 +79,12 @@ enum LLMProviderFactory {
         }
         return provider
     }
+
+    /// [Fix-opencode-session] Inject x-opencode-session into non-OpenAI providers
+    /// (Anthropic/Gemini) via their customUserAgent wiring. For OpenAI-family
+    /// this is already done in applyCustomUserAgent above; this helper covers
+    /// the Anthropic Chat path which builds its own URLRequest.
+    static func opencodeSessionHeader() -> String { OpencodeSession.id }
 
     // MARK: - Per-Provider Builders
 
@@ -167,6 +177,8 @@ enum LLMProviderFactory {
                 model: model
             )
             provider.codexAccountId = CodexOAuthManager.shared.accountId(instanceId: iid)
+            // [Fix-opencode-session] OAuth Codex path bypasses applyCustomUserAgent — inject directly.
+            provider.extraHeaders["x-opencode-session"] = OpencodeSession.id
             return provider
         }
     }
@@ -219,6 +231,7 @@ enum LLMProviderFactory {
             provider.appendV1Suffix = appendV1
             provider.forceResponsesAPI = true
             provider.codexAccountId = CodexOAuthManager.shared.accountId(instanceId: iid)
+            provider.extraHeaders["x-opencode-session"] = OpencodeSession.id
             return provider
         }
     }
@@ -246,6 +259,7 @@ enum LLMProviderFactory {
             )
             provider.customBaseURL = customBase
             provider.appendV1Suffix = appendV1
+            provider.extraHeaders["x-opencode-session"] = OpencodeSession.id
             return provider
         }
     }
@@ -269,6 +283,7 @@ enum LLMProviderFactory {
             )
             provider.customBaseURL = customBase
             provider.appendV1Suffix = appendV1
+            provider.extraHeaders["x-opencode-session"] = OpencodeSession.id
             return provider
         }
     }
