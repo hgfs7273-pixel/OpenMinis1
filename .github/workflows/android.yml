@@ -16,13 +16,11 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
-      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "cmake;3.22.1" "ndk;28.0.12433566"
-      - run: echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.12433566" >> $GITHUB_ENV
+      - run: echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV; sdkmanager "platforms;android-36" "build-tools;36.0.0" "cmake;3.22.1" "ndk;28.0.12433566"; echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12433566" >> $GITHUB_ENV
       - run: cp src/android/app/provider-customization.properties.example src/android/app/provider-customization.properties || true
       - run: ./deps/build_proot.sh
         env:
-          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/28.0.12433566
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.0.12433566
       - run: ./scripts/prepare_android_sandbox.sh
       - run: cd src/android && chmod +x gradlew && ./gradlew :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
