@@ -16,7 +16,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - run: echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV; sdkmanager "platforms;android-36" "build-tools;36.0.0" "cmake;3.22.1" "ndk;28.0.12433566"; echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12433566" >> $GITHUB_ENV
+      - name: Install Android SDK packages
+        run: |
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/tools/bin:$PATH"
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "cmake;3.22.1" "ndk;28.0.12433566"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.12433566" >> $GITHUB_ENV
       - run: cp src/android/app/provider-customization.properties.example src/android/app/provider-customization.properties || true
       - run: ./deps/build_proot.sh
         env:
