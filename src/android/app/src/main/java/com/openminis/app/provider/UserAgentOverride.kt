@@ -6,7 +6,7 @@ import okhttp3.Request
 /**
  * [T-provider-custom-user-agent] Single chokepoint for the per-provider
  * User-Agent override. Each provider/models-api request builder calls this
- * right before `.build()`, so the "null/blank → fall back, non-blank →
+ * right before `.build()`, so the "null/blank ??fall back, non-blank ??
  * replace" rule lives in exactly one place.
  *
  * `.header(...)` replaces any value the builder set earlier (e.g. the Codex
@@ -17,7 +17,7 @@ import okhttp3.Request
  * null/blank, we now apply [MinisUserAgent.DEFAULT] instead of leaving
  * the builder UA-less (which lets OkHttp insert its own `okhttp/4.12.0`).
  * The default carries the Minis version so request logs upstream can be
- * traced back to the app build that issued them — matching the
+ * traced back to the app build that issued them ??matching the
  * "branded UA except where a specific client identity is required"
  * intent of the feature.
  *
@@ -37,7 +37,25 @@ fun Request.Builder.applyUserAgentOverride(
         // else: leave whatever UA the builder already had (preserves
         // Codex / Claude CLI fingerprints on OAuth paths).
     }
+    // [Fix-opencode-session] OpenCode Go requires `x-opencode-session` on every
+    // request for service optimization; missing header caused 4xx since 2025-09-06.
+    // Value is a stable per-install session ID (one UUID, reused for all requests).
+    header("x-opencode-session", OpencodeSession.ID)
+    header("x-opencode-version", "1.18.31")
+    header("opencode-version", "1.18.31")
+    header("X-Opencode-Version", "1.18.31")
     return this
+}
+
+/**
+ * [Fix-opencode-session] Stable per-install ID for `x-opencode-session`.
+ * Lazy UUID ??same value for the whole process lifetime, satisfying
+ * "one stable ID per session" without needing Context/SharedPreferences.
+ * Persisting across reinstalls is unnecessary for the header's purpose
+ * (de-duplication / optimization) and would require Context plumbing.
+ */
+object OpencodeSession {
+    val ID: String by lazy { java.util.UUID.randomUUID().toString() }
 }
 
 /**
@@ -47,17 +65,17 @@ fun Request.Builder.applyUserAgentOverride(
  * Format mirrors iOS exactly:
  *   `Minis/<version> (Android <release>; <model>)`
  *
- * e.g. `Minis/0.14-preview (Android 13; Pixel 4a)` — same shape as iOS's
+ * e.g. `Minis/0.14-preview (Android 13; Pixel 4a)` ??same shape as iOS's
  * `Minis/1.10 (iOS 26.5; iPhone)`.
  *
  * Version comes from BuildConfig (auto-tracks every release). OS release
  * from `Build.VERSION.RELEASE` (the marketing version a user recognises;
  * the API-level SDK_INT is omitted for parity with iOS, which doesn't
- * carry a sibling axis). Model is `Build.MODEL` — already broadcast by
+ * carry a sibling axis). Model is `Build.MODEL` ??already broadcast by
  * default OkHttp UAs, useful for device-specific diagnosis without
  * de-anonymising the user further.
  *
- * Built lazily — only the first request constructs the string, so the
+ * Built lazily ??only the first request constructs the string, so the
  * `Build.*` reads (cheap but JNI-bound) don't cost startup time.
  */
 object MinisUserAgent {
