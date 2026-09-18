@@ -27,6 +27,18 @@ jobs:
         env:
           ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.0.12433566
       - run: ./scripts/prepare_android_sandbox.sh
+      - name: Build rclone AAR
+        run: |
+          mkdir -p src/android/app/libs
+          if [ ! -f src/android/app/libs/rclone.aar ]; then
+            sudo apt-get update && sudo apt-get install -y golang-go
+            export PATH="$PATH:$(go env GOPATH)/bin"
+            go install golang.org/x/mobile/cmd/gomobile@latest
+            gomobile init
+            export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.0.12433566"
+            ./deps/build_rclone_android.sh
+            cp deps/build/rclone/rclone.aar src/android/app/libs/rclone.aar
+          fi
       - run: cd src/android && chmod +x gradlew && ./gradlew :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
